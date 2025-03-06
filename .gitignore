@@ -1,0 +1,6 @@
+.idea
+build/bin
+node_modules
+web/dist
+build/bin/*
+test
