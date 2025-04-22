@@ -149,12 +149,12 @@ func (p *Proxy) handleWechatRequest(r *http.Request, ctx *goproxy.ProxyCtx) (*ht
 		if !ok {
 			return
 		}
-		resourceOnce.markMu.Lock()
-		defer resourceOnce.markMu.Unlock()
+
 		urlSign := Md5(rowUrl.(string))
-		if _, ok := resourceOnce.mark[urlSign]; ok {
+		if resourceOnce.mediaIsMarked(urlSign) {
 			return
 		}
+
 		id, err := gonanoid.New()
 		if err != nil {
 			id = urlSign
@@ -215,7 +215,7 @@ func (p *Proxy) handleWechatRequest(r *http.Request, ctx *goproxy.ProxyCtx) (*ht
 
 			res.OtherData["wx_file_formats"] = strings.Join(fileFormats, "#")
 		}
-		resourceOnce.mark[urlSign] = true
+		resourceOnce.markMedia(urlSign)
 		httpServerOnce.send("newResources", res)
 	}(body)
 	return r, p.buildEmptyResponse(r)
@@ -306,14 +306,11 @@ func (p *Proxy) httpResponseEvent(resp *http.Response, ctx *goproxy.ProxyCtx) *h
 	}
 
 	rawUrl := resp.Request.URL.String()
-	resourceOnce.markMu.Lock()
-	defer resourceOnce.markMu.Unlock()
-
 	isAll, _ := resourceOnce.getResType("all")
 	isClassify, _ := resourceOnce.getResType(classify)
 
 	urlSign := Md5(rawUrl)
-	if _, ok := resourceOnce.mark[urlSign]; !ok && (isAll || isClassify) {
+	if ok := resourceOnce.mediaIsMarked(urlSign); !ok && (isAll || isClassify) {
 		value, _ := strconv.ParseFloat(resp.Header.Get("content-length"), 64)
 		id, err := gonanoid.New()
 		if err != nil {
@@ -335,7 +332,7 @@ func (p *Proxy) httpResponseEvent(resp *http.Response, ctx *goproxy.ProxyCtx) *h
 			Description: "",
 			ContentType: resp.Header.Get("Content-Type"),
 		}
-		resourceOnce.mark[urlSign] = true
+		resourceOnce.markMedia(urlSign)
 		httpServerOnce.send("newResources", res)
 	}
 	return resp

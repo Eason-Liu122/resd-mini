@@ -43,7 +43,7 @@ func GetApp(assets embed.FS) *App {
 		appOnce = &App{
 			assets:      assets,
 			AppName:     "resd-mini",
-			Version:     "1.0.1",
+			Version:     "1.0.2",
 			Description: "resd-mini是一款集网络资源嗅探 + 高速下载功能于一体的软件，高颜值、高性能和多样化，提供个人用户下载自己上传到各大平台的网络资源功能！",
 			Copyright:   "Copyright © 2025",
 			PublicCrt: []byte(`
