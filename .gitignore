@@ -4,3 +4,4 @@ node_modules
 web/dist
 build/bin/*
 test
+.DS_Store

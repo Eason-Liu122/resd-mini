@@ -300,7 +300,7 @@ const dataAction = (row: appType.MediaInfo, index: number, type: string) => {
       window?.$message?.success("复制成功")
       break
     case "json":
-      navigator.clipboard.writeText(JSON.stringify(row))
+      navigator.clipboard.writeText(encodeURIComponent(JSON.stringify(row)))
       window?.$message?.success("复制成功")
       break
     case "open":
@@ -470,7 +470,7 @@ const triggerEvent = ()=>{
 const handleImport = (content: string)=>{
   content.split("\n").forEach((line, index) => {
     try {
-      let res = JSON.parse(line)
+      let res = JSON.parse(decodeURIComponent(line))
       if (res && res?.Id) {
         res.Id = res.Id + Math.floor(Math.random() * 100000)
         res.SavePath = ""

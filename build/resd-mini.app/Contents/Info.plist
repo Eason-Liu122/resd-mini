@@ -9,9 +9,9 @@
     <key>CFBundleName</key>
     <string>resd-mini</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0.1</string>
+    <string>{{version}}</string>
     <key>CFBundleVersion</key>
-    <string>1.0.1</string>
+    <string>{{version}}</string>
     <key>CFBundleIconFile</key>
     <string>icon</string>
     <key>CFBundlePackageType</key>
