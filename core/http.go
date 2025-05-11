@@ -76,6 +76,7 @@ func (h *HttpServer) run() {
 	mux.HandleFunc("/api/download", h.download)
 	mux.HandleFunc("/api/wx-file-decode", h.wxFileDecode)
 	mux.HandleFunc("/api/cert", h.handleCert)
+	mux.HandleFunc("/api/get-media-infos", h.getMediaInfos)
 
 	// Static assets endpoint
 	mux.HandleFunc("/", h.staticHandler)
@@ -97,7 +98,7 @@ func (h *HttpServer) run() {
 		}),
 	}
 	go h.handleMessages()
-	fmt.Println("服务已启动，监听 http://" + globalConfig.Host + ":" + globalConfig.Port)
+	LogWithLine("服务已启动，监听 http://" + globalConfig.Host + ":" + globalConfig.Port)
 	if err := server.Serve(listener); err != nil {
 		fmt.Printf("服务器异常: %v", err)
 	}
@@ -125,7 +126,7 @@ func (h *HttpServer) staticHandler(w http.ResponseWriter, r *http.Request) {
 func (h *HttpServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	conn, err := h.upGrader.Upgrade(w, r, nil)
 	if err != nil {
-		fmt.Println("WebSocket upgrade error:", err)
+		LogWithLine("WebSocket upgrade error:", err)
 		return
 	}
 	defer conn.Close()
@@ -137,7 +138,7 @@ func (h *HttpServer) wsHandler(w http.ResponseWriter, r *http.Request) {
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
-			fmt.Println("WebSocket read error:", err)
+			LogWithLine("WebSocket read error:", err)
 			break
 		}
 		h.broadcast <- message
@@ -202,6 +203,16 @@ func (h *HttpServer) handleCert(w http.ResponseWriter, r *http.Request) {
 	io.Copy(w, io.NopCloser(bytes.NewReader(appOnce.PublicCrt)))
 }
 
+func (h *HttpServer) getMediaInfos(w http.ResponseWriter, r *http.Request) {
+    // 假设resourceOnce有一个获取所有mediaInfo的方法GetAllMediaInfos()
+    mediaInfos := resourceOnce.getAllMediaInfos()
+    
+    h.writeJson(w, ResponseData{
+        Code: 1,
+        Data: mediaInfos,
+    })
+}
+
 func (h *HttpServer) handleMessages() {
 	for {
 		msg := <-h.broadcast
@@ -226,7 +237,7 @@ func (h *HttpServer) send(t string, data interface{}) {
 		"data": data,
 	})
 	if err != nil {
-		fmt.Println("Error converting map to JSON:", err)
+		LogWithLine("Error converting map to JSON:", err)
 		return
 	}
 	h.broadcast <- jsonData
@@ -255,7 +266,6 @@ func (h *HttpServer) openDirectoryDialog(w http.ResponseWriter, r *http.Request)
 			"folder": folder,
 		},
 	})
-	return
 }
 
 func (h *HttpServer) openFileDialog(w http.ResponseWriter, r *http.Request) {

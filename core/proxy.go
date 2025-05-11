@@ -106,6 +106,7 @@ func (p *Proxy) setTransport() {
 }
 
 func (p *Proxy) httpRequestEvent(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
+	// fmt.Println(`httpRequestEvent: ` + r.URL.Path)
 	if strings.Contains(r.Host, "res-downloader.666666.com") && strings.Contains(r.URL.Path, "/wechat") {
 		if globalConfig.WxAction && r.URL.Query().Get("type") == "1" {
 			return p.handleWechatRequest(r, ctx)
@@ -120,8 +121,9 @@ func (p *Proxy) httpRequestEvent(r *http.Request, ctx *goproxy.ProxyCtx) (*http.
 
 func (p *Proxy) handleWechatRequest(r *http.Request, ctx *goproxy.ProxyCtx) (*http.Request, *http.Response) {
 	body, err := io.ReadAll(r.Body)
+	// fmt.Println(body)
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return r, p.buildEmptyResponse(r)
 	}
 
@@ -180,6 +182,7 @@ func (p *Proxy) handleWechatRequest(r *http.Request, ctx *goproxy.ProxyCtx) (*ht
 			res.Classify = "image"
 			res.Suffix = ".png"
 			res.ContentType = "image/png"
+			return
 		}
 
 		if urlToken, ok := firstMedia["urlToken"].(string); ok {
@@ -216,6 +219,7 @@ func (p *Proxy) handleWechatRequest(r *http.Request, ctx *goproxy.ProxyCtx) (*ht
 			res.OtherData["wx_file_formats"] = strings.Join(fileFormats, "#")
 		}
 		resourceOnce.markMedia(urlSign)
+		resourceOnce.addMediaInfo(res)
 		httpServerOnce.send("newResources", res)
 	}(body)
 	return r, p.buildEmptyResponse(r)
@@ -273,20 +277,20 @@ func (p *Proxy) httpResponseEvent(resp *http.Response, ctx *goproxy.ProxyCtx) *h
 			
 			`)
 
-			newBody = regexp.MustCompile(`async\s*finderGetCommentDetail\((\w+)\)\s*\{return(.*?)\s*}\s*async`).
-				ReplaceAllString(newBody, `
-							async finderGetCommentDetail($1) {
-								var res = await$2;
-								if (res?.data?.object?.objectDesc) {
-									fetch("https://res-downloader.666666.com/wechat?type=2", {
-									  method: "POST",
-									  mode: "no-cors",
-									  body: JSON.stringify(res.data.object.objectDesc),
-									});
-								}
-								return res;
-							}async
-			`)
+			// newBody = regexp.MustCompile(`async\s*finderGetCommentDetail\((\w+)\)\s*\{return(.*?)\s*}\s*async`).
+			// 	ReplaceAllString(newBody, `
+			// 				async finderGetCommentDetail($1) {
+			// 					var res = await$2;
+			// 					if (res?.data?.object?.objectDesc) {
+			// 						fetch("https://res-downloader.666666.com/wechat?type=2", {
+			// 						  method: "POST",
+			// 						  mode: "no-cors",
+			// 						  body: JSON.stringify(res.data.object.objectDesc),
+			// 						});
+			// 					}
+			// 					return res;
+			// 				}async
+			// `)
 			newBodyBytes := []byte(newBody)
 			respTemp.Body = io.NopCloser(bytes.NewBuffer(newBodyBytes))
 			respTemp.ContentLength = int64(len(newBodyBytes))
@@ -296,51 +300,51 @@ func (p *Proxy) httpResponseEvent(resp *http.Response, ctx *goproxy.ProxyCtx) *h
 		return respTemp
 	}
 
-	classify, suffix := TypeSuffix(resp.Header.Get("Content-Type"))
-	if classify == "" {
-		return resp
-	}
+	// classify, suffix := TypeSuffix(resp.Header.Get("Content-Type"))
+	// if classify == "" {
+	// 	return resp
+	// }
 
-	if classify == "video" && strings.HasSuffix(host, "finder.video.qq.com") {
-		return resp
-	}
+	// if classify == "video" && strings.HasSuffix(host, "finder.video.qq.com") {
+	// 	return resp
+	// }
 
-	rawUrl := resp.Request.URL.String()
-	isAll, _ := resourceOnce.getResType("all")
-	isClassify, _ := resourceOnce.getResType(classify)
+	// rawUrl := resp.Request.URL.String()
+	// isAll, _ := resourceOnce.getResType("all")
+	// isClassify, _ := resourceOnce.getResType(classify)
 
-	urlSign := Md5(rawUrl)
-	if ok := resourceOnce.mediaIsMarked(urlSign); !ok && (isAll || isClassify) {
-		value, _ := strconv.ParseFloat(resp.Header.Get("content-length"), 64)
-		id, err := gonanoid.New()
-		if err != nil {
-			id = urlSign
-		}
-		res := MediaInfo{
-			Id:          id,
-			Url:         rawUrl,
-			UrlSign:     urlSign,
-			CoverUrl:    "",
-			Size:        FormatSize(value),
-			Domain:      GetTopLevelDomain(rawUrl),
-			Classify:    classify,
-			Suffix:      suffix,
-			Status:      DownloadStatusReady,
-			SavePath:    "",
-			DecodeKey:   "",
-			OtherData:   map[string]string{},
-			Description: "",
-			ContentType: resp.Header.Get("Content-Type"),
-		}
+	// urlSign := Md5(rawUrl)
+	// if ok := resourceOnce.mediaIsMarked(urlSign); !ok && (isAll || isClassify) {
+	// 	value, _ := strconv.ParseFloat(resp.Header.Get("content-length"), 64)
+	// 	id, err := gonanoid.New()
+	// 	if err != nil {
+	// 		id = urlSign
+	// 	}
+	// 	res := MediaInfo{
+	// 		Id:          id,
+	// 		Url:         rawUrl,
+	// 		UrlSign:     urlSign,
+	// 		CoverUrl:    "",
+	// 		Size:        FormatSize(value),
+	// 		Domain:      GetTopLevelDomain(rawUrl),
+	// 		Classify:    classify,
+	// 		Suffix:      suffix,
+	// 		Status:      DownloadStatusReady,
+	// 		SavePath:    "",
+	// 		DecodeKey:   "",
+	// 		OtherData:   map[string]string{},
+	// 		Description: "",
+	// 		ContentType: resp.Header.Get("Content-Type"),
+	// 	}
 
-		// Store entire request headers as JSON
-		if headers, err := json.Marshal(resp.Request.Header); err == nil {
-			res.OtherData["headers"] = string(headers)
-		}
+	// 	// Store entire request headers as JSON
+	// 	if headers, err := json.Marshal(resp.Request.Header); err == nil {
+	// 		res.OtherData["headers"] = string(headers)
+	// 	}
 		
-		resourceOnce.markMedia(urlSign)
-		httpServerOnce.send("newResources", res)
-	}
+	// 	resourceOnce.markMedia(urlSign)
+	// 	httpServerOnce.send("newResources", res)
+	// }
 	return resp
 }
 

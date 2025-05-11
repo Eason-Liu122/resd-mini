@@ -18,7 +18,7 @@ func (s *SystemSetup) setProxy() error {
 	is := false
 	for _, cmd := range commands {
 		if err := exec.Command(cmd[0], cmd[1:]...).Run(); err != nil {
-			fmt.Println(err)
+			LogWithLine(err)
 		} else {
 			is = true
 		}

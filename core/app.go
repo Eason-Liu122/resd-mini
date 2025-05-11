@@ -2,13 +2,12 @@ package core
 
 import (
 	"embed"
-	"fmt"
 	"github.com/getlantern/systray"
 	"github.com/vrischmann/userdir"
 	"os"
 	"path/filepath"
-	sysRuntime "runtime"
-	"strings"
+	// sysRuntime "runtime"
+	// "strings"
 	"time"
 )
 
@@ -103,7 +102,7 @@ ILKEQKmPPzKs7kp/7Nz+2cT3
 `),
 		}
 		appOnce.UserDir = filepath.Join(userdir.GetConfigHome(), appOnce.AppName)
-		fmt.Println("UserDir：", appOnce.UserDir)
+		LogWithLine("UserDir：", appOnce.UserDir)
 		appOnce.LockFile = filepath.Join(appOnce.UserDir, "install.lock")
 		initLogger()
 		initConfig()
@@ -184,23 +183,23 @@ func (a *App) getIcon() []byte {
 }
 
 func (a *App) installCert() {
-	if res, err := systemOnce.installCert(); err != nil {
-		DialogErr("证书安装失败，err:" + err.Error() + ", " + res)
-		if sysRuntime.GOOS == "darwin" {
-			fmt.Println(`证书安装失败，请执行如下命令，安装证书文件:`)
-			fmt.Println(`echo "输入本地登录密码" && sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "`)
-		} else if sysRuntime.GOOS == "windows" && strings.Contains(err.Error(), "Access is denied.") {
-			fmt.Println(`证书安装失败，首次启用本软件，请使用鼠标右键选择以管理员身份运行`)
-		} else if sysRuntime.GOOS == "linux" && strings.Contains(err.Error(), "Access is denied.") {
-			fmt.Println("证书路径: " + systemOnce.CertFile + ", 请手动安装，安装完成后请执行: touch" + a.LockFile)
-		} else {
-			fmt.Println(`证书安装失败，` + sysRuntime.GOOS)
-		}
-	} else {
-		if err := a.lock(); err != nil {
-			globalLogger.err(err)
-		}
-	}
+	// if res, err := systemOnce.installCert(); err != nil {
+	// 	DialogErr("证书安装失败，err:" + err.Error() + ", " + res)
+	// 	if sysRuntime.GOOS == "darwin" {
+	// 		LogWithLine(`证书安装失败，请执行如下命令，安装证书文件:`)
+	// 		LogWithLine(`echo "输入本地登录密码" && sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain "`)
+	// 	} else if sysRuntime.GOOS == "windows" && strings.Contains(err.Error(), "Access is denied.") {
+	// 		LogWithLine(`证书安装失败，首次启用本软件，请使用鼠标右键选择以管理员身份运行`)
+	// 	} else if sysRuntime.GOOS == "linux" && strings.Contains(err.Error(), "Access is denied.") {
+	// 		LogWithLine("证书路径: " + systemOnce.CertFile + ", 请手动安装，安装完成后请执行: touch" + a.LockFile)
+	// 	} else {
+	// 		LogWithLine(`证书安装失败，` + sysRuntime.GOOS)
+	// 	}
+	// } else {
+	// 	if err := a.lock(); err != nil {
+	// 		globalLogger.err(err)
+	// 	}
+	// }
 }
 
 func (a *App) OpenSystemProxy() bool {

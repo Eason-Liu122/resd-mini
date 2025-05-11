@@ -3,7 +3,6 @@ package core
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"github.com/ncruces/zenity"
 	"net/url"
 	"os"
@@ -11,9 +10,16 @@ import (
 	"runtime"
 	"strings"
 	"time"
+	"fmt"
 )
 
 func Empty(data interface{}) {
+}
+
+func LogWithLine(format string, args ...interface{}) {
+	_, file, line, _ := runtime.Caller(1) // 获取调用者的文件路径和行号
+	msg := fmt.Sprintf(format, args...)
+	fmt.Printf("%s:%d: %s\n", file, line, msg)
 }
 
 func DialogErr(message string) {
@@ -21,7 +27,7 @@ func DialogErr(message string) {
 		zenity.Title("Warning"),
 		zenity.WarningIcon)
 	if err != nil {
-		fmt.Println("DialogErr:", err)
+		LogWithLine("DialogErr:", err)
 	}
 }
 

@@ -31,21 +31,23 @@ type Resource struct {
 	mediaMark sync.Map
 	resType   map[string]bool
 	resTypeMu sync.RWMutex
+    mediaInfos   []MediaInfo      // 新增：存储 MediaInfo 数组
+    mediaInfosMu sync.RWMutex     // 新增：保护 mediaInfos 的锁
 }
 
 func initResource() *Resource {
 	if resourceOnce == nil {
 		resourceOnce = &Resource{
 			resType: map[string]bool{
-				"all":   true,
-				"image": true,
-				"audio": true,
+				"all":   false,
+				"image": false,
+				"audio": false,
 				"video": true,
-				"m3u8":  true,
-				"live":  true,
-				"xls":   true,
-				"doc":   true,
-				"pdf":   true,
+				"m3u8":  false,
+				"live":  false,
+				"xls":   false,
+				"doc":   false,
+				"pdf":   false,
 			},
 		}
 	}
@@ -90,6 +92,7 @@ func (r *Resource) setResType(n []string) {
 
 func (r *Resource) clear() {
 	r.mediaMark.Clear()
+	r.clearMediaInfos()
 }
 
 func (r *Resource) delete(sign string) {
@@ -162,6 +165,42 @@ func (r *Resource) download(mediaInfo MediaInfo, decodeStr string) {
 		}
 		r.progressEventsEmit(mediaInfo, "完成", DownloadStatusDone)
 	}(mediaInfo)
+}
+
+// 添加 MediaInfo 到数组，如果 urlSign 已存在则返回 false
+func (r *Resource) addMediaInfo(info MediaInfo) bool {
+    // 检查是否已存在相同的 urlSign
+    for _, item := range r.mediaInfos {
+        if item.UrlSign == info.UrlSign {
+            return false
+        }
+    }
+    
+    r.mediaInfos = append(r.mediaInfos, info)
+    return true
+}
+
+// 获取所有 MediaInfo
+func (r *Resource) getAllMediaInfos() []MediaInfo {
+	if r.mediaInfos == nil {
+        return make([]MediaInfo, 0)
+    }
+	
+    return r.mediaInfos
+}
+
+// 根据 urlSign 删除 MediaInfo
+func (r *Resource) removeMediaInfoBySign(urlSign string) {
+    for i, item := range r.mediaInfos {
+        if item.UrlSign == urlSign {
+            r.mediaInfos = append(r.mediaInfos[:i], r.mediaInfos[i+1:]...)
+            break
+        }
+    }
+}
+
+func (r *Resource) clearMediaInfos() {
+    r.mediaInfos = make([]MediaInfo, 0) // 设置为空数组而不是nil
 }
 
 // 解析并组装 headers

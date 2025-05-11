@@ -41,12 +41,12 @@ func (s *SystemSetup) setProxy() error {
 	is := false
 	for _, serviceName := range services {
 		if err := exec.Command("networksetup", "-setwebproxy", serviceName, "127.0.0.1", globalConfig.Port).Run(); err != nil {
-			fmt.Println(err)
+			LogWithLine(err)
 		} else {
 			is = true
 		}
 		if err := exec.Command("networksetup", "-setsecurewebproxy", serviceName, "127.0.0.1", globalConfig.Port).Run(); err != nil {
-			fmt.Println(err)
+			LogWithLine(err)
 		} else {
 			is = true
 		}
@@ -71,12 +71,12 @@ func (s *SystemSetup) unsetProxy() error {
 	is := false
 	for _, serviceName := range services {
 		if err := exec.Command("networksetup", "-setwebproxystate", serviceName, "off").Run(); err != nil {
-			fmt.Println(err)
+			LogWithLine(err)
 		} else {
 			is = true
 		}
 		if err := exec.Command("networksetup", "-setsecurewebproxystate", serviceName, "off").Run(); err != nil {
-			fmt.Println(err)
+			LogWithLine(err)
 		} else {
 			is = true
 		}
