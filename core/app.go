@@ -135,10 +135,10 @@ func (a *App) OnReady() {
 	go httpServerOnce.run()
 
 	time.AfterFunc(200*time.Millisecond, func() {
-		if globalConfig.AutoProxy {
-			appOnce.OpenSystemProxy()
-		}
-		_ = OpenBrowser("http://127.0.0.1:" + globalConfig.Port)
+		// if globalConfig.AutoProxy {
+		// 	appOnce.OpenSystemProxy()
+		// }
+		// _ = OpenBrowser("http://127.0.0.1:" + globalConfig.Port)
 	})
 
 	go func() {
